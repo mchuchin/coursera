@@ -65,6 +65,5 @@ def get_car_list(csv_filename):
                 car_list.append(c)
         return car_list
 
-            
 # truck = Truck("truck", "Man", "2.jpeg", "20.5", "2.5x4x3.8")
 # print(truck)

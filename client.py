@@ -11,28 +11,42 @@ class Client:
     def put(self, name_server, value_server, timestamp=None):
         timestamp = timestamp or str(int(time.time()))
         with socket.create_connection((self._host, self._port), self._timeout) as sock:
-            data = f"put {name_server:0!s} {value_server:.2f} {timestamp:d}\n"
-            try:
-                sock.sendall(data.encode())
-            except socket.error:
+            data = f"put {name_server} {value_server} {timestamp}\n"
+            sock.sendall(data.encode())
+            if sock.recv(1024) != b"ok\n\n":
                 raise ClientError
 
     def get(self, name_data):
         with socket.create_connection((self._host, self._port), self._timeout) as sock:
-            data = f"get {name_data:0!s}\n"
-            try:
-                sock.sendall(data.encode())
-            except socket.error:
-                raise ClientError
-            dd = sock.recv(1024)
-            dd = dd.decode("utf-8")
+            while True:
+                sock.sendall(f"get {name_data}\n".encode())  # отправка данных в bytes
+                data_server = sock.recv(1024)  # ожидание (получение) ответа
+                if not data_server:
+                    raise ClientError
+                data_server_de = data_server.decode("utf-8")
+                data = {}
+                if data_server_de == "":
+                    return data
+                # разбираем ответ для команды get
+                for row in data_server_de.split("\n"):
+                    if row == "":
+                        break
+                    elif row == "ok":
+                        continue
+                    elif row == "error":
+                        raise ClientError
+                    key, value, timestamp = row.split()
+                    if key not in data:
+                        data[key] = []
+                    data[key].append((int(timestamp), float(value)))
+                return data
 
 
-class ClientError:
-        print("Error client")
+class ClientError(Exception):
+    pass
 
 
-def _main():
+"""def _main():
     # проверка работы клиента
     client = Client("127.0.0.1", 8888)
     client.put("test", 0.5, timestamp=546546)
@@ -44,4 +58,4 @@ def _main():
 
 
 if __name__ == "__main__":
-    _main()
+    _main()"""

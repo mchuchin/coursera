@@ -46,32 +46,23 @@ def get(key):
         if key == "":
             continue
         if key == "*":
-            responses = {}
-            for key, timestamp_data in data.items():
-                responses[key] = sorted(timestamp_data.items())
-            rows = []
-            for response in responses:
-                if not response:
-                    continue
-                for key, values in response.items():
-                    for timestamp, value in values:
-                        rows.append(f"{key} {value} {timestamp}")
-
-            result = "ok\n"
-
-            if rows:
-                result += "\n".join(rows) + "\n"
-
-            return result + "\n"
+            response = 'ok\n'
+            for key, value in data.items():
+                for v in sorted(value):
+                    response += f"{key} {value[v]} {v}\n"
+            response += '\n'
+            return response
         else:
-            pass
+            value = data.get(key)
+            if value:
+                response = 'ok\n'
+                for v in sorted(value):
+                    response += f"{key} {value[v]} {v}\n"
+                response += '\n'
+                return response
+            else:
+                return 'ok\n\n'
 
-
-#get <key>\n
-#Успешный ответ от сервера:
-#ok\npalm.cpu 10.5 1501864247\neardrum.cpu 15.3 1501864259\n\n
-#Если ни одна метрика не удовлетворяет условиям поиска, то вернется ответ:
-#ok\n\n
 
 def put(data):
     key, value, timestamp = data.split()
